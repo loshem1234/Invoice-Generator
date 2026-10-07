@@ -1,12 +1,18 @@
-# LuxCraft Invoices
+# LuxCraft Invoices & Estimates
 
-Progress-draw invoice builder for LuxCraft Renovations. Fill in the job, set the number of draws, and compile a professional PDF. Business details live in **Settings**; every compiled invoice is kept under **Saved invoices**.
+Invoice and estimate builder for LuxCraft Renovations.
+
+- **Invoices** (`/`): progress-draw invoices. Set the contract, number of draws, and which draw is due; compile a PDF.
+- **Estimates** (`/estimate.html`): itemized estimates grouped into sections, with optional add-ons, discount, tax, payment schedule, terms, exclusions and a signature block. **Make invoice** turns an accepted estimate into a deposit invoice, using its payment schedule as the draws.
+
+Business details are shared by both and edited in **Settings**. Every compiled document is kept under **Saved invoices** / **Saved estimates**.
 
 ## Structure
 
 ```
 public/
-  index.html          the whole app (UI, logo, PDF generator)
+  index.html          invoices
+  estimate.html       estimates
   luxcraft-logo.png   full-size logo
   favicon.png         browser tab icon
 server.js             tiny static server (no dependencies)
@@ -31,8 +37,8 @@ No environment variables are needed. Railway provides `PORT` automatically.
 
 ## Where data is stored
 
-Settings and saved invoices are stored in the browser (localStorage) for the site's address. They do not live on the server, so redeploying never erases them. They are per browser and per device. Use **Settings → Export backup** regularly, and **Import backup** to restore or move to another device.
+Settings, saved invoices and saved estimates are stored in the browser (localStorage) for the site's address. They do not live on the server, so redeploying never erases them. They are per browser and per device. Use the Export backup buttons in Settings regularly (invoices and estimates each have one), and **Import backup** to restore or move to another device.
 
 ## Editing the app
 
-Everything is in `public/index.html`. Commit and push; Railway redeploys automatically.
+Invoices are in `public/index.html`, estimates in `public/estimate.html`. Commit and push; Railway redeploys automatically.
