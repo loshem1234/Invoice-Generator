@@ -1,0 +1,13 @@
+{
+  "name": "luxcraft-invoices",
+  "version": "1.0.0",
+  "description": "LuxCraft Renovations progress-draw invoice builder",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
