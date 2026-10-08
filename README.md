@@ -2,10 +2,10 @@
 
 Invoice and estimate builder for LuxCraft Renovations.
 
-- **Invoices** (`/`): progress-draw invoices. Set the contract, number of draws, and which draw is due; compile a PDF.
+- **Invoices** (`/`): progress-draw invoices. Set the contract, number of draws, and which draw is due; download a PDF.
 - **Estimates** (`/estimate.html`): itemized estimates grouped into sections, with optional add-ons, discount, tax, payment schedule, terms, exclusions and a signature block. **Make invoice** turns an accepted estimate into a deposit invoice, using its payment schedule as the draws.
 
-Business details are shared by both and edited in **Settings**. Every compiled document is kept under **Saved invoices** / **Saved estimates**.
+Business details are shared by both and edited in **Settings**. Every saved document is kept under **Saved invoices** / **Saved estimates**.
 
 ## Structure
 
