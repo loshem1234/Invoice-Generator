@@ -112,6 +112,8 @@ aside{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex
   .mobilebar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:5;gap:10px;align-items:center;justify-content:space-between;
     background:var(--surface);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
   .mobilebar .due{font:500 .95rem var(--f-mono)}
+  .mbtns{display:flex;gap:8px}
+  .mbtns .btn.primary{padding:11px 18px}
   .mobilebar small{display:block;font:600 .64rem var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
 }
 
@@ -243,7 +245,8 @@ td .sub{display:block;color:var(--muted);font-size:.8rem}
           <div class="stat"><span>Balance after</span><b id="sBal">–</b></div>
         </div>
         <div class="compile">
-          <button type="button" class="btn primary" id="compile">Compile PDF</button>
+          <button type="button" class="btn primary" id="saveBtn" title="Save (Ctrl+S)">Save</button>
+          <button type="button" class="btn" id="compile">Download PDF</button>
           <button type="button" class="btn" id="newBlank">New invoice</button>
           <span class="msg" id="msg"></span>
         </div>
@@ -268,7 +271,7 @@ td .sub{display:block;color:var(--muted);font-size:.8rem}
         <thead><tr><th>Invoice</th><th>Client &amp; project</th><th>Draw</th><th class="r">Amount due</th><th>Status</th><th class="r">Actions</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
-      <div class="empty" id="emptyList" hidden><b>No saved invoices yet</b>Each invoice you compile is saved here so you can reopen it, download it again, or bill the next draw.</div>
+      <div class="empty" id="emptyList" hidden><b>No saved invoices yet</b>Every invoice you save is kept here so you can reopen it, download it again, or bill the next draw.</div>
     </div>
     <p class="msg" id="listMsg" style="margin-top:10px"></p>
   </section>
@@ -319,7 +322,7 @@ td .sub{display:block;color:var(--muted);font-size:.8rem}
 
 <div class="mobilebar" id="mobilebar">
   <div><small>Amount due</small><span class="due" id="mDue">–</span></div>
-  <button type="button" class="btn primary" id="compile2">Compile PDF</button>
+  <div class="mbtns"><button type="button" class="btn" id="compile2">PDF</button><button type="button" class="btn primary" id="saveBtn2">Save</button></div>
 </div>
 
 <script>
@@ -720,7 +723,7 @@ function refreshBanners(){
   $("setupBanner").hidden = !!store.settings;
   const rec = editingId && store.invoices.find(r=>r.id===editingId);
   $("editBanner").hidden = !rec;
-  if(rec) $("editText").innerHTML = `Editing saved invoice <b>${esc(rec.st.invNo)}</b>. Compiling updates it.`;
+  if(rec) $("editText").innerHTML = `Editing saved invoice <b>${esc(rec.st.invNo)}</b>. Saving updates it.`;
 }
 
 /* ================= invoice form events ================= */
@@ -767,9 +770,9 @@ async function downloadRecord(stt, biz, msgEl){
   catch(err){ const c=err&&err.code; if(msgEl){ msgEl.className = c==="declined"?"msg":"msg err"; msgEl.textContent = c==="declined" ? "Download cancelled." : c==="rate_limited" ? "A save prompt is already open." : "Couldn't save the PDF."; } }
 }
 
-async function compile(){
+function saveRecord(){
   const msg=$("msg");
-  if(!st.client.name.trim()){ msg.className="msg err"; msg.textContent="Add the client's name before compiling."; show("new"); $("cName").focus(); return; }
+  if(!st.client.name.trim()){ msg.className="msg err"; msg.textContent="Add the client's name before saving."; show("new"); $("cName").focus(); return; }
   if(!st.invNo.trim()){ msg.className="msg err"; msg.textContent="Add an invoice number."; $("invNo").focus(); return; }
   const dup = store.invoices.find(r=>r.st.invNo===st.invNo && r.id!==editingId);
   if(dup){ msg.className="msg err"; msg.textContent=`Invoice ${st.invNo} already exists. Use a different number.`; $("invNo").focus(); return; }
@@ -790,12 +793,28 @@ async function compile(){
   const ok = persist();
   $("listCount").textContent = store.invoices.length;
   refreshBanners();
-  msg.className="msg"; msg.textContent = ok ? "Saved. Preparing PDF…" : "Preparing PDF… (this browser blocks saving)";
-  await downloadRecord(st, biz, msg);
-  if(ok && msg.className.includes("ok")) msg.textContent += " · saved to invoices";
+  return {ok, biz};
 }
-$("compile").addEventListener("click", compile);
-$("compile2").addEventListener("click", compile);
+function saveOnly(){
+  const r = saveRecord(); if(!r) return;
+  const msg=$("msg");
+  const t = new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+  msg.className = r.ok ? "msg ok" : "msg err";
+  msg.textContent = r.ok ? `Saved invoice ${st.invNo} at ${t}` : "This browser is blocking storage, so the invoice couldn't be saved.";
+}
+async function downloadPdf(){
+  const r = saveRecord(); if(!r) return;
+  const msg=$("msg"); msg.className="msg"; msg.textContent="Saved. Preparing PDF…";
+  await downloadRecord(st, r.biz, msg);
+  if(r.ok && msg.className.includes("ok")) msg.textContent += " · saved to invoices";
+}
+$("saveBtn").addEventListener("click", saveOnly);
+$("saveBtn2").addEventListener("click", saveOnly);
+$("compile").addEventListener("click", downloadPdf);
+$("compile2").addEventListener("click", downloadPdf);
+document.addEventListener("keydown", e=>{
+  if((e.ctrlKey||e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase()==="s" && !$("view-new").hidden){ e.preventDefault(); saveOnly(); }
+});
 
 /* ================= saved invoices ================= */
 function renderList(){
@@ -898,7 +917,7 @@ fillSettings();
 fillForm();
 $("listCount").textContent = store.invoices.length;
 show(store.settings ? "new" : "settings");
-if(fromEstimate){ $("msg").className="msg ok"; $("msg").textContent=`Created from estimate ${fromEstimate}. Check the details, then compile the deposit invoice.`; }
+if(fromEstimate){ $("msg").className="msg ok"; $("msg").textContent=`Created from estimate ${fromEstimate}. Check the details, then save or download the deposit invoice.`; }
 if(!storageOK){ $("msg").className="msg err"; $("msg").textContent="This browser is blocking storage, so invoices won't be kept after you close the page."; }
 </script>
 
