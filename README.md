@@ -42,3 +42,12 @@ Settings, saved invoices and saved estimates are stored in the browser (localSto
 ## Editing the app
 
 Invoices are in `public/index.html`, estimates in `public/estimate.html`. Commit and push; Railway redeploys automatically.
+
+## Syncing to the LuxCraft Cockpit
+
+`public/cockpit-sync.js` sends every saved invoice and estimate to the Cockpit a few seconds after you save, so payments, jobs, estimates and taxes stay current there.
+
+1. In the Cockpit: **Settings → Connections**, enter this app's address (e.g. `https://luxcraft-invoices.up.railway.app`) and create a connection key.
+2. Here: **Settings → LuxCraft Cockpit**, paste the Cockpit address and the key, then **Save & sync now**. Do this once on each browser/device you use.
+
+The key is stored only in your browser (not in the code or repo). It can only add invoices and estimates to the Cockpit; it can't read anything back. Disconnect it in the Cockpit at any time.
