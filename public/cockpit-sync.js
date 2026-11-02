@@ -78,8 +78,8 @@
       const r = await push();
       if (r && !r.error && !r.busy) {
         let t = 'Synced ' + r.invoices + ' invoices and ' + r.estimates + ' estimates.';
-        if (r.payments_added) t += ' Added ' + r.payments_added + ' payment' + (r.payments_added === 1 ? '' : 's') + ' to the ledger.';
-        if (r.ledger_removed) t += ' Removed ' + r.ledger_removed + ' no longer marked received.';
+        const added = (r.invoices_added || 0) + (r.payments_added || 0);
+        t += ' Ledger is up to date' + (added ? ' (' + added + ' new)' : '') + '.';
         if (r.renamed && r.renamed.length) t += ' Duplicate numbers kept as: ' + r.renamed.join(', ') + '.';
         if (Array.isArray(r.skipped) && r.skipped.length) t += ' Skipped ' + r.skipped.length + ': ' + r.skipped.join('; ');
         s.className = (Array.isArray(r.skipped) && r.skipped.length) ? 'msg err' : 'msg ok'; s.textContent = t;
