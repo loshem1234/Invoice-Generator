@@ -11,8 +11,8 @@
   let busy = false;
   async function push() {
     const c = cfg();
-    if (!c.url || !c.token) return { skipped: true };
-    if (busy) { schedule(); return { skipped: true }; }
+    if (!c.url || !c.token) return { busy: true };
+    if (busy) { schedule(); return { busy: true }; }
     busy = true;
     const inv = read(WATCH[0]) || {}; const est = read(WATCH[1]) || {};
     try {
@@ -23,6 +23,7 @@
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+      data.skipped = data.skipped || [];
       saveCfg({ ...cfg(), lastSync: new Date().toISOString(), lastError: null });
       status();
       return data;
@@ -75,7 +76,12 @@
       document.getElementById('ck_token').value = '••••••••';
       const s = document.getElementById('ck_status'); s.className = 'msg'; s.textContent = 'Syncing…';
       const r = await push();
-      if (r && !r.error && !r.skipped) { s.className = 'msg ok'; s.textContent = 'Synced ' + r.invoices + ' invoices and ' + r.estimates + ' estimates.'; }
+      if (r && !r.error && !r.busy) {
+        let t = 'Synced ' + r.invoices + ' invoices and ' + r.estimates + ' estimates.';
+        if (r.renamed && r.renamed.length) t += ' Duplicate numbers kept as: ' + r.renamed.join(', ') + '.';
+        if (Array.isArray(r.skipped) && r.skipped.length) t += ' Skipped ' + r.skipped.length + ': ' + r.skipped.join('; ');
+        s.className = (Array.isArray(r.skipped) && r.skipped.length) ? 'msg err' : 'msg ok'; s.textContent = t;
+      }
     });
     document.getElementById('ck_off').addEventListener('click', () => { saveCfg({}); document.getElementById('ck_url').value = ''; document.getElementById('ck_token').value = ''; status(); });
     status();
