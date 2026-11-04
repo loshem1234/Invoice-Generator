@@ -81,6 +81,7 @@
         const added = (r.invoices_added || 0) + (r.payments_added || 0);
         t += ' Ledger is up to date' + (added ? ' (' + added + ' new)' : '') + '.';
         if (r.renamed && r.renamed.length) t += ' Duplicate numbers kept as: ' + r.renamed.join(', ') + '.';
+        if (r.flags && r.flags.length) t += ' Check: ' + r.flags.join('; ') + '.';
         if (Array.isArray(r.skipped) && r.skipped.length) t += ' Skipped ' + r.skipped.length + ': ' + r.skipped.join('; ');
         s.className = (Array.isArray(r.skipped) && r.skipped.length) ? 'msg err' : 'msg ok'; s.textContent = t;
       }
